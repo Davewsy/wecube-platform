@@ -70,7 +70,7 @@ public class PluginConfigRegisteringProcessor {
         }
     }
 
-    public void process(int cmdbCiTypeId, String cmdbCiTypeName, PluginRegisteringModel registeringModel) {
+    public void process(int cmdbCiTypeId, String cmdbCiTypeName, PluginRegisteringModel registeringModel, boolean temporarySave) {
         for (FilteringRuleConfig ruleConfig : registeringModel.getFilteringRuleConfigs()) {
             if (!filteringRuleMap.containsKey(String.valueOf(ruleConfig.getCmdbAttributeId()))) {
                 PluginConfigFilteringRule filteringRule = new PluginConfigFilteringRule();
@@ -99,7 +99,7 @@ public class PluginConfigRegisteringProcessor {
                 if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE.equals(parameterMapping.getMappingType())) {
                     parameter.setCmdbCitypeId(parameterMapping.getCmdbCiTypeId());
                     parameter.setCmdbAttributeId(parameterMapping.getCmdbAttributeId());
-                    parameter.setCmdbCitypePath(pathToString(converRoutine(parameterMapping.getRoutine())));
+                    parameter.setCmdbCitypePath(pathToString(convertRoutine(parameterMapping.getRoutine())));
                 } else if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_ENUM_CODE.equals(parameterMapping.getMappingType())) {
                     parameter.setCmdbEnumCode(parameterMapping.getCmdbEnumCode());
                 } else if (PluginConfigInterfaceParameter.MAPPING_TYPE_RUNTIME.equals(parameterMapping.getMappingType())) {
@@ -120,12 +120,16 @@ public class PluginConfigRegisteringProcessor {
                 parameter.setCmdbAttributeId(parameterMapping.getCmdbAttributeId());
             }
 
-            intQueryOperateAggRequests.add(prepareIntQueryOperateAggRequest(cmdbCiTypeId, cmdbCiTypeName, registeringModel.getFilteringRuleConfigs(), inf, interfaceConfig));
+            if (!temporarySave) {
+                intQueryOperateAggRequests.add(prepareIntQueryOperateAggRequest(cmdbCiTypeId, cmdbCiTypeName, registeringModel.getFilteringRuleConfigs(), inf, interfaceConfig));
+            }
         }
 
-        List<IntQueryOperateAggResponseDto> responseIntegrateTemplates = cmdbServiceV2Stub.operateIntegratedQueryTemplate(cmdbCiTypeId, intQueryOperateAggRequests);
-        handlerIntegrateTemplateOperationResponse(responseIntegrateTemplates);
-        pluginConfig.setStatus(CONFIGURED);
+        if (!temporarySave) {
+            List<IntQueryOperateAggResponseDto> responseIntegrateTemplates = cmdbServiceV2Stub.operateIntegratedQueryTemplate(cmdbCiTypeId, intQueryOperateAggRequests);
+            handlerIntegrateTemplateOperationResponse(responseIntegrateTemplates);
+            pluginConfig.setStatus(CONFIGURED);
+        }
     }
 
     private IntQueryOperateAggRequestDto prepareIntQueryOperateAggRequest(int cmdbCiTypeId,
@@ -151,7 +155,7 @@ public class PluginConfigRegisteringProcessor {
         for (PluginRegisteringModel.InputParameterMapping parameterMapping : interfaceConfig.getInputParameterMappings()) {
             if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE.equals(parameterMapping.getMappingType())) {
                 Criteria criteria = createCmdbIntQueryOperateAggRequestCriteria(parameterMapping);
-                String keyOfCriteria = keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), converRoutine(criteria.getRoutine()));
+                String keyOfCriteria = keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), convertRoutine(criteria.getRoutine()));
                 if (criteriaMap.containsKey(keyOfCriteria)) {
                     Criteria existingCriteria = criteriaMap.get(keyOfCriteria);
                     existingCriteria.setBranchId(existingCriteria.getBranchId() + "-" + criteria.getBranchId());
@@ -166,19 +170,21 @@ public class PluginConfigRegisteringProcessor {
         return intQueryOperateAggRequestDto;
     }
 
-    private List<Integer> converRoutine(List<CriteriaNode> routine) {
+    private List<Integer> convertRoutine(List<CriteriaNode> routine) {
         List<Integer> idRoutines = new LinkedList<>();
-        routine.forEach(x -> {
-            idRoutines.add(x.getCiTypeId());
-            if (x.getParentRs() != null) {
-                idRoutines.add(x.getParentRs().getAttrId());
-            }
-        });
+        if (isNotEmpty(routine)) {
+            routine.forEach(x -> {
+                idRoutines.add(x.getCiTypeId());
+                if (x.getParentRs() != null) {
+                    idRoutines.add(x.getParentRs().getAttrId());
+                }
+            });
+        }
         return idRoutines;
     }
 
     private String keyOfCiTypeAndAttributeAndPath(Criteria criteria) {
-        return keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), converRoutine(criteria.getRoutine()));
+        return keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), convertRoutine(criteria.getRoutine()));
     }
 
     private String keyOfCiTypeAndAttributeAndPath(int ciTypeId, int attributeId, List<Integer> idRoutines) {

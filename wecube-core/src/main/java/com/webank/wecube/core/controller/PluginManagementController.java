@@ -10,6 +10,8 @@ import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfo
 import com.webank.wecube.core.service.PluginConfigService;
 import com.webank.wecube.core.service.PluginInstanceService;
 import com.webank.wecube.core.support.plugin.dto.PortalRequestBody.SearchPluginLogRequest;
+import com.webank.wecube.core.utils.BooleanUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,7 @@ import java.util.List;
 import static com.webank.wecube.core.domain.JsonResponse.okay;
 import static com.webank.wecube.core.domain.JsonResponse.okayWithData;
 import static com.webank.wecube.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
+import static com.webank.wecube.core.utils.BooleanUtils.isTrue;
 
 @RestController
 @Slf4j
@@ -108,8 +111,9 @@ public class PluginManagementController {
     public JsonResponse savePluginConfig(@PathVariable(value = "config-id") int configId
             , @RequestParam int cmdbCiTypeId
             , @RequestParam String cmdbCiTypeName
+            , @RequestParam(required = false) String temporarySave
             , @RequestBody PluginRegisteringModel pluginRegisteringModel) {
-        pluginConfigService.savePluginConfig(configId, cmdbCiTypeId, cmdbCiTypeName, pluginRegisteringModel);
+        pluginConfigService.savePluginConfig(configId, cmdbCiTypeId, cmdbCiTypeName, pluginRegisteringModel, isTrue(temporarySave));
         return okay();
     }
 

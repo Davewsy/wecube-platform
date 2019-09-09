@@ -71,7 +71,7 @@ public class PluginConfigService {
         pluginConfigRepository.save(pluginConfig);
     }
 
-    public void savePluginConfig(int pluginConfigId, int cmdbCiTypeId, String cmdbCiTypeName, PluginRegisteringModel registeringModel) {
+    public void savePluginConfig(int pluginConfigId, int cmdbCiTypeId, String cmdbCiTypeName, PluginRegisteringModel registeringModel, boolean temporarySave) {
         if (pluginConfigId == 0) throw new WecubeCoreException("pluginConfigId required.");
         if (cmdbCiTypeId == 0) throw new WecubeCoreException("cmdbCiTypeId required.");
         if (StringUtils.isEmpty(cmdbCiTypeName)) throw new WecubeCoreException("cmdbCiTypeName should NOT be empty.");
@@ -86,7 +86,7 @@ public class PluginConfigService {
         pluginConfig.setCmdbCiTypeId(cmdbCiTypeId);
 
         new PluginConfigRegisteringProcessor(cmdbServiceV2Stub, pluginConfig, pluginConfigInterfaceParameterRepository)
-                .process(cmdbCiTypeId, cmdbCiTypeName, registeringModel);
+                .process(cmdbCiTypeId, cmdbCiTypeName, registeringModel, temporarySave);
 
         pluginConfigRepository.save(pluginConfig);
     }
