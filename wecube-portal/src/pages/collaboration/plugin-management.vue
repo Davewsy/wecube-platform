@@ -184,27 +184,22 @@
                             style="border-bottom: 1px solid gray; padding: 10px 0"
                           >
                             <div class="instance-item">
-                              {{ item.ip + ":" + item.port }}
+                              <Col span="4">
+                                {{ item.ip + ":" + item.port }}
+                              </Col>
+                              <Button
+                                size="small"
+                                type="success"
+                                @click="
+                                  createPluginInstanceByPackageIdAndHostIp(
+                                    item.ip,
+                                    item.port,
+                                    item.createParams
+                                  )
+                                "
+                                >{{ $t("create") }}</Button
+                              >
                             </div>
-                            <span>{{ $t("start_params") }}:</span>
-                            <Input
-                              type="textarea"
-                              style="width: 50%"
-                              :autosize="true"
-                              v-model="item.createParams"
-                            />
-                            <Button
-                              size="small"
-                              type="success"
-                              @click="
-                                createPluginInstanceByPackageIdAndHostIp(
-                                  item.ip,
-                                  item.port,
-                                  item.createParams
-                                )
-                              "
-                              >{{ $t("create") }}</Button
-                            >
                           </div>
                         </div>
                       </div>
@@ -561,10 +556,6 @@ export default {
       let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
-      // let { status, data, message } = await getPluginInterfaces(packageId);
-      // if (status === "OK") {
-      //   this.defaultCreateParams = currentPlugin.containerStartParam;
-      // }
 
       if (currentPlugin.pluginConfigs) {
         this.selectHosts = [];
@@ -572,7 +563,7 @@ export default {
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
       this.getAvailableContainerHosts();
-      // this.resetLogTable();
+      this.resetLogTable();
     },
     pluginPackageChangeHandler(key) {
       this.swapPanel("");
