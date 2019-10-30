@@ -232,7 +232,7 @@
                       </div>
                     </Row>
                   </Card>
-
+                  <!--
                   <Card style="margin-top: 20px">
                     <p>{{ $t("log_query") }}</p>
                     <div style="padding: 0 0 50px 0;margin-top: 20px">
@@ -263,7 +263,7 @@
                         v-html="logDetails"
                       ></div>
                     </Modal>
-                  </Card>
+                  </Card> -->
                 </p>
               </Panel>
               <Panel name="2">
@@ -335,7 +335,8 @@ import {
   getAvailablePortByHostIp,
   preconfigurePluginPackage,
   deletePluginPkg,
-  registPluginPackage
+  registPluginPackage,
+  getAvailableInstancesByPackageId
 } from "@/api/server.js";
 
 const pagination = {
@@ -560,25 +561,37 @@ export default {
       let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
-      let { status, data, message } = await getPluginInterfaces(packageId);
-      if (status === "OK") {
-        this.defaultCreateParams = currentPlugin.containerStartParam;
-      }
+      // let { status, data, message } = await getPluginInterfaces(packageId);
+      // if (status === "OK") {
+      //   this.defaultCreateParams = currentPlugin.containerStartParam;
+      // }
 
       if (currentPlugin.pluginConfigs) {
         this.selectHosts = [];
         this.availiableHostsWithPort = [];
-        this.getAllInstancesByPackageId(this.currentPlugin.id);
+        this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
       this.getAvailableContainerHosts();
-      this.resetLogTable();
+      // this.resetLogTable();
     },
     pluginPackageChangeHandler(key) {
       this.swapPanel("");
       this.dbQueryCommandString = "";
     },
-    async getAllInstancesByPackageId(id) {
-      let { data, status, message } = await getAllInstancesByPackageId(id);
+    async removePluginInstance(instanceId) {
+      let { data, status, message } = await removePluginInstance(instanceId);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllInstancesByPackageId(this.currentPackageId);
+      }
+    },
+    async getAvailableInstancesByPackageId(id) {
+      let { data, status, message } = await getAvailableInstancesByPackageId(
+        id
+      );
       if (status === "OK") {
         this.allInstances = data.map(_ => {
           if (_.status !== "REMOVED") {
