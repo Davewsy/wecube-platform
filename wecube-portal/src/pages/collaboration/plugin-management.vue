@@ -13,9 +13,9 @@
             action="v1/api/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">
-              {{ $t("upload_plugin_btn") }}
-            </Button>
+            <Button icon="ios-cloud-upload-outline">{{
+              $t("upload_plugin_btn")
+            }}</Button>
           </Upload>
         </Card>
       </Row>
@@ -33,9 +33,9 @@
             </Col>
           </Row>
           <div style="height: 70%; overflow: auto">
-            <span v-if="plugins.length < 1">
-              {{ $t("no_plugin_packages") }}
-            </span>
+            <span v-if="plugins.length < 1">{{
+              $t("no_plugin_packages")
+            }}</span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
@@ -124,9 +124,9 @@
           name="confirm"
           :label="$t('confirm')"
         >
-          <Button type="info" @click="registPackage()">
-            {{ $t("confirm_to_regist_plugin") }}
-          </Button>
+          <Button type="info" @click="registPackage()">{{
+            $t("confirm_to_regist_plugin")
+          }}</Button>
         </TabPane>
       </Tabs>
     </Col>
@@ -144,9 +144,9 @@
           <Row class="instances-container">
             <Collapse value="1">
               <Panel name="1">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("runtime_container") }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("runtime_container")
+                }}</span>
                 <p slot="content">
                   <Card dis-hover>
                     <Row>
@@ -184,9 +184,9 @@
                             style="border-bottom: 1px solid gray; padding: 10px 0"
                           >
                             <div class="instance-item">
-                              <Col span="4">
-                                {{ item.ip + ":" + item.port }}
-                              </Col>
+                              <Col span="4">{{
+                                item.ip + ":" + item.port
+                              }}</Col>
                               <Button
                                 size="small"
                                 type="success"
@@ -232,14 +232,14 @@
                     <p>{{ $t("log_query") }}</p>
                     <div style="padding: 0 0 50px 0;margin-top: 20px">
                       <WeTable
-                        :tableData="tableData"
+                        :tableData="logTableData"
                         :tableInnerActions="innerActions"
                         :tableColumns="logTableColumns"
-                        :pagination="pagination"
+                        :pagination="logTablePagination"
                         @actionFun="actionFun"
-                        @handleSubmit="handleSubmit"
-                        @pageChange="pageChange"
-                        @pageSizeChange="pageSizeChange"
+                        @handleSubmit="handleLogTableSubmit"
+                        @pageChange="onLogTableChange"
+                        @pageSizeChange="onLogTablePageSizeChange"
                         :showCheckbox="false"
                         tableHeight="650"
                         ref="table"
@@ -258,13 +258,13 @@
                         v-html="logDetails"
                       ></div>
                     </Modal>
-                  </Card> -->
+                  </Card>-->
                 </p>
               </Panel>
               <Panel name="2">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("database") }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("database")
+                }}</span>
                 <Row slot="content">
                   <Row>
                     <Col span="16">
@@ -275,29 +275,51 @@
                       />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="queryDBHandler">
-                        {{ $t("execute") }}
-                      </Button>
+                      <Button @click="getDBTableData">{{
+                        $t("execute")
+                      }}</Button>
                     </Col>
                   </Row>
-                  <Row>
-                    {{ $t("search_result") }}
+                  <Row style="margin-top: 20px">
+                    {{ $t("search_result") + ":" }}
                     <Table
                       :columns="dbQueryColumns"
                       :data="dbQueryData"
                     ></Table>
+                    <Page
+                      :total="dbTablePagination.total"
+                      :current="dbTablePagination.currentPage"
+                      :page-size="dbTablePagination.pageSize"
+                      @on-change="onDBTablePageChange"
+                      @on-page-size-change="onDBTablePageSizeChange"
+                      show-elevator
+                      show-sizer
+                      show-total
+                      style="float: right; margin: 10px 0;"
+                    />
                   </Row>
                 </Row>
               </Panel>
               <Panel name="3">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("storage_service") }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("storage_service")
+                }}</span>
                 <Row slot="content">
                   <Table
                     :columns="storageServiceColumns"
                     :data="storageServiceData"
                   ></Table>
+                  <Page
+                    :total="storageTablePagination.total"
+                    :current="storageTablePagination.currentPage"
+                    :page-size="storageTablePagination.pageSize"
+                    @on-change="onStoragePageChange"
+                    @on-page-size-change="onStoragePageSizeChange"
+                    show-elevator
+                    show-sizer
+                    show-total
+                    style="float: right; margin: 10px 0;"
+                  />
                 </Row>
               </Panel>
             </Collapse>
@@ -331,10 +353,22 @@ import {
   preconfigurePluginPackage,
   deletePluginPkg,
   registPluginPackage,
-  getAvailableInstancesByPackageId
+  getAvailableInstancesByPackageId,
+  queryDataBaseByPackageId,
+  queryStorageFilesByPackageId
 } from "@/api/server.js";
 
-const pagination = {
+const logTablePagination = {
+  pageSize: 10,
+  currentPage: 1,
+  total: 0
+};
+const dbTablePagination = {
+  pageSize: 10,
+  currentPage: 1,
+  total: 0
+};
+const storageTablePagination = {
   pageSize: 10,
   currentPage: 1,
   total: 0
@@ -366,8 +400,8 @@ export default {
       isShowRuntimeManagementPanel: false,
       currentTab: "dependency",
       currentPlugin: {},
-      tableData: [],
-      totalTableData: [],
+      logTableData: [],
+      totalLogTableData: [],
       innerActions: [
         {
           label: this.$t("show_details"),
@@ -424,7 +458,9 @@ export default {
           placeholder: this.$t("match_text")
         }
       ],
-      pagination,
+      logTablePagination,
+      dbTablePagination,
+      storageTablePagination,
       allAvailiableHosts: [],
       allInstances: [],
       searchFilters: [],
@@ -564,6 +600,44 @@ export default {
       }
       this.getAvailableContainerHosts();
       this.resetLogTable();
+
+      // get storage table data
+      this.getStorageTableData(packageId);
+    },
+    async getStorageTableData(packageId) {
+      let { status, data, message } = await queryStorageFilesByPackageId(
+        packageId
+      );
+      if (status === "OK") {
+        this.storageServiceColumns = data.headers;
+        this.storageServiceData = data.contents;
+      }
+    },
+    onStoragePageChange(currentPage) {
+      console.log("currentPage", currentPage);
+    },
+    onStoragePageSizeChange(pageSize) {
+      console.log("pageSize", pageSize);
+    },
+    async getDBTableData() {
+      let payload = {
+        sqlQuery: this.dbQueryCommandString,
+        pageable: dbTablePagination
+      };
+      let { status, data, message } = await queryDataBaseByPackageId(
+        this.currentPlugin.id,
+        payload
+      );
+      if (status === "OK") {
+        this.dbQueryColumns = data.headers;
+        this.dbQueryData = data.contents;
+      }
+    },
+    onDBTablePageChange(currentPage) {
+      console.log("currentPage", currentPage);
+    },
+    onDBTablePageSizeChange(pageSize) {
+      console.log("pageSize", pageSize);
     },
     pluginPackageChangeHandler(key) {
       this.swapPanel("");
@@ -624,11 +698,11 @@ export default {
         }
       });
     },
-    handleSubmit(data) {
+    handleLogTableSubmit(data) {
       this.searchFilters = data;
-      this.getTableData();
+      this.getLogTableData();
     },
-    async getTableData() {
+    async getLogTableData() {
       if (this.searchFilters.length < 2) return;
       const payload = {
         instanceIds: this.searchFilters[0].value,
@@ -644,7 +718,7 @@ export default {
       if (status === "OK") {
         for (let i in data) {
           let arr = [];
-          this.totalTableData = arr.concat(
+          this.totalLogTableData = arr.concat(
             data[i].outputs.map(_ => {
               return {
                 instance: this.allInstances.find(j => j.id === +i).displayLabel,
@@ -655,16 +729,25 @@ export default {
           );
         }
 
-        this.handlePaginationByFE();
+        this.handleLogTablePagination();
       }
     },
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.handlePaginationByFE();
+    onLogTableChange(current) {
+      this.logTablePagination.currentPage = current;
+      this.handleLogTablePagination();
     },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.handlePaginationByFE();
+    onLogTablePageSizeChange(size) {
+      this.logTablePagination.pageSize = size;
+      this.handleLogTablePagination();
+    },
+    handleLogTablePagination() {
+      this.logTablePagination.total = this.totalLogTableData.length;
+      let temp = Array.from(this.totalLogTableData);
+      this.logTableData = temp.splice(
+        (this.logTablePagination.currentPage - 1) *
+          this.logTablePagination.pageSize,
+        this.logTablePagination.pageSize
+      );
     },
     actionFun(type, data) {
       if (type === "showLogDetails") {
@@ -672,8 +755,8 @@ export default {
       }
     },
     resetLogTable() {
-      this.tableData = [];
-      this.totalTableData = [];
+      this.logTableData = [];
+      this.totalLogTableData = [];
       this.$refs.table && this.$refs.table.reset();
     },
     selectHost(v) {
@@ -704,9 +787,6 @@ export default {
           };
         });
       }
-    },
-    queryDBHandler() {
-      console.log("db query", this.dbQueryCommandString);
     }
   },
   created() {
