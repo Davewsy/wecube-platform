@@ -125,7 +125,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(1);
         assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
-        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
+        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getDataModelId()).isEqualTo("1.0");
     }
 
 //    @Test
@@ -159,7 +159,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
             PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
             entityDto.setName(String.format("Entity_%d", i + 1));
             entityDto.setPackageName(packageName);
-            entityDto.setPackageVersion(packageVersion);
+            entityDto.setDataModelId(packageVersion);
             entityDto.setDescription(String.format("Entity_%d_description", i + 1));
             List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
             for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
@@ -191,7 +191,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
             PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
             entityDto.setName(String.format("Entity_%d", i + 1));
             entityDto.setPackageName(packageName);
-            entityDto.setPackageVersion(packageVersion);
+            entityDto.setDataModelId(packageVersion);
             entityDto.setDescription(String.format("Entity_%d_description", i + 1));
             List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
             for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
@@ -223,7 +223,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
             PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
             entityDto.setName(String.format("Entity_%d", i + 1));
             entityDto.setPackageName(packageName);
-            entityDto.setPackageVersion(packageVersion);
+            entityDto.setDataModelId(packageVersion);
             entityDto.setDescription(String.format("Entity_%d_description", i + 1));
             List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
             for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
@@ -252,7 +252,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
             PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
             entityDto.setName(String.format("Entity_%d", i + 1));
             entityDto.setPackageName(packageName);
-            entityDto.setPackageVersion(packageVersion);
+            entityDto.setDataModelId(packageVersion);
             entityDto.setDescription(String.format("Entity_%d_description", i + 1));
             List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
             for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
