@@ -116,6 +116,12 @@ public class ApplicationProperties {
         private Integer staticResourceServerPort;
         private String staticResourceServerPath;
     }
+    
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.gateway")
+    public class GatewayProperties {
+        private String address;
+    }
 
     @Data
     @ConfigurationProperties(prefix = "wecube.core.s3")
